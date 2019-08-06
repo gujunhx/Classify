@@ -6,6 +6,8 @@ from sklearn.metrics import classification_report
 import pickle
 from sklearn.model_selection import ShuffleSplit, KFold
 from sklearn.model_selection import GridSearchCV
+# from spark_sklearn.util import createLocalSparkSession
+# from spark_sklearn import GridSearchCV
 
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer
@@ -60,7 +62,7 @@ def trainModel(X_train, X_val, Y_train, Y_val):
 
 def selectParam(X_train, Y_train):
     # cv_split = KFold(n_splits=5)
-    cv_split = ShuffleSplit(n_splits=5, train_size=0.8, test_size=0.2)
+    cv_split = ShuffleSplit(n_splits=2, train_size=0.8, test_size=0.2)
     param = {'vect__min_df': (100, 200, 300),
              'vect__max_df': (1000, 3000, 5000),
              'chi__percentile': (10, 20, 30),
@@ -70,7 +72,9 @@ def selectParam(X_train, Y_train):
                          ('tfidf', TfidfTransformer()),
                          ('chi', SelectPercentile(chi2)),
                          ('clf', MultinomialNB())])
-    grid_search = GridSearchCV(pipeline, param, n_jobs=1, verbose=1, cv=cv_split)
+    # sc = createLocalSparkSession().sparkContext
+    # grid_search = GridSearchCV(sc=sc, estimator=pipeline, param_grid=param, n_jobs=1, verbose=1, cv=cv_split)
+    grid_search = GridSearchCV(estimator=pipeline, param_grid=param, n_jobs=1, verbose=1, cv=cv_split)
     grid_search.fit(X_train, Y_train)
     print(grid_search.best_score_)
     print(grid_search.best_params_)
